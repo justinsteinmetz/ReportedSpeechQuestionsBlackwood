@@ -1,0 +1,840 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Blackwood Interrogations</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,400&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap');
+
+  :root {
+    --ink: #0f0e0b;
+    --paper: #f2ece0;
+    --aged: #e3d9c4;
+    --blood: #8b1a1a;
+    --gold: #b8860b;
+    --slate: #3a4a5c;
+    --mid: #6b5c45;
+    --rule: #c8baa0;
+    --green: #2a4a35;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: #1a1610;
+    color: var(--ink);
+    min-height: 100vh;
+  }
+
+  .masthead {
+    background: var(--ink);
+    color: var(--paper);
+    text-align: center;
+    padding: 22px 24px 16px;
+    border-bottom: 5px double var(--gold);
+    position: relative;
+    overflow: hidden;
+  }
+  .masthead::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(0deg, transparent, transparent 28px, rgba(255,255,255,0.015) 28px, rgba(255,255,255,0.015) 29px);
+    pointer-events: none;
+  }
+  .masthead .kicker {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.62rem;
+    letter-spacing: 0.25em;
+    color: var(--blood);
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  .masthead h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(1.6rem, 5vw, 2.8rem);
+    font-weight: 700;
+    line-height: 1.05;
+  }
+  .masthead .sub {
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+    font-size: 0.95rem;
+    color: #a09070;
+    margin-top: 5px;
+  }
+  .masthead .byline-row {
+    margin-top: 10px;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.18em;
+    color: var(--gold);
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+
+  .case-banner {
+    background: var(--blood);
+    color: #fff;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.68rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    padding: 7px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 2px solid #5a0f0f;
+  }
+  .case-banner .stamp {
+    border: 2px solid rgba(255,255,255,0.4);
+    padding: 2px 8px;
+    font-size: 0.6rem;
+    letter-spacing: 0.2em;
+  }
+
+  .page {
+    max-width: 980px;
+    margin: 0 auto;
+    background: var(--paper);
+    padding: 24px 20px 48px;
+    box-shadow: 0 0 60px rgba(0,0,0,0.7);
+  }
+
+  .section-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.58rem;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: var(--blood);
+    border-top: 2px solid var(--blood);
+    border-bottom: 1px solid var(--rule);
+    padding: 5px 0;
+    margin-bottom: 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .section-label .badge {
+    background: var(--blood);
+    color: #fff;
+    padding: 2px 9px;
+    font-size: 0.56rem;
+    letter-spacing: 0.1em;
+  }
+
+  .phase-nav {
+    display: flex;
+    border: 2px solid var(--ink);
+    margin-bottom: 24px;
+    overflow: hidden;
+  }
+  .phase-btn {
+    flex: 1;
+    padding: 10px 8px;
+    text-align: center;
+    cursor: pointer;
+    border-right: 1px solid var(--rule);
+    transition: background 0.15s;
+    user-select: none;
+  }
+  .phase-btn:last-child { border-right: none; }
+  .phase-btn:hover { background: var(--aged); }
+  .phase-btn.active { background: var(--ink); color: var(--paper); }
+  .phase-btn .pn { font-family: 'DM Mono', monospace; font-size: 0.56rem; letter-spacing: 0.15em; color: var(--blood); margin-bottom: 2px; }
+  .phase-btn.active .pn { color: var(--gold); }
+  .phase-btn .pt { font-family: 'Playfair Display', serif; font-size: 0.78rem; font-weight: 700; }
+  .phase-btn .pm { font-family: 'DM Mono', monospace; font-size: 0.58rem; color: var(--mid); margin-top: 1px; }
+  .phase-btn.active .pm { color: #8a7a60; }
+
+  .phase { display: none; }
+  .phase.active { display: block; }
+
+  /* FIX #5/#10/#11: responsive grid including inner rule-box grid */
+  .col2 { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 24px; }
+  .col3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 18px; margin-bottom: 24px; }
+  /* FIX #10: Phase 1 now uses equal columns so suspect board isn't crushed */
+  .col-scene { display: grid; grid-template-columns: 3fr 2fr; gap: 24px; margin-bottom: 24px; }
+  .rule-inner { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  @media (max-width: 650px) {
+    .col2, .col3, .col-scene, .rule-inner { grid-template-columns: 1fr; }
+  }
+
+  /* FIX #9: consistent margin via CSS only */
+  .case-card {
+    border: 1px solid var(--rule);
+    background: #fff;
+    padding: 16px;
+    position: relative;
+    margin-bottom: 16px;
+  }
+  .case-card::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 4px; height: 100%;
+    background: var(--slate);
+  }
+  .case-card h3 { font-family: 'Playfair Display', serif; font-size: 1rem; margin-bottom: 8px; padding-left: 10px; }
+  .case-card p, .case-card li { font-size: 0.83rem; line-height: 1.65; color: #2a2218; padding-left: 10px; }
+  .case-card ul, .case-card ol { padding-left: 28px; margin-top: 6px; }
+  .case-card li { padding-left: 0; margin-bottom: 4px; }
+  .case-card .card-label { font-family: 'DM Mono', monospace; font-size: 0.58rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--slate); padding-left: 10px; margin-bottom: 6px; }
+
+  /* FIX #10: suspect cards now horizontal in their column */
+  .suspect-board { display: flex; flex-direction: column; gap: 10px; }
+  .suspect-card {
+    border: 1px solid var(--rule);
+    background: #fff;
+    padding: 10px 14px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .suspect-card .mugshot {
+    width: 44px; height: 44px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.3rem;
+    border: 2px solid var(--rule);
+    background: var(--aged);
+    flex-shrink: 0;
+  }
+  .suspect-card .s-info { flex: 1; min-width: 0; }
+  .suspect-card .s-name { font-family: 'Playfair Display', serif; font-size: 0.88rem; font-weight: 700; }
+  .suspect-card .s-role { font-family: 'DM Mono', monospace; font-size: 0.56rem; letter-spacing: 0.1em; color: var(--mid); text-transform: uppercase; margin-top: 1px; }
+  .suspect-card .s-alibi { font-size: 0.74rem; color: #5a4a35; margin-top: 4px; line-height: 1.4; font-style: italic; }
+  .suspect-card .s-status { display: inline-block; margin-top: 4px; font-family: 'DM Mono', monospace; font-size: 0.54rem; letter-spacing: 0.1em; padding: 1px 6px; text-transform: uppercase; }
+  .s-status.suspect { background: #fde8e0; color: var(--blood); border: 1px solid #f0b0a0; }
+
+  .rule-box {
+    background: var(--ink);
+    color: var(--paper);
+    padding: 20px 22px;
+    margin-bottom: 22px;
+    border-left: 5px solid var(--gold);
+  }
+  .rule-box h2 { font-family: 'Playfair Display', serif; font-size: 1.15rem; color: var(--gold); margin-bottom: 14px; }
+  .rule-box p { font-size: 0.84rem; color: #c8b898; line-height: 1.6; margin-bottom: 10px; }
+  .rule-box code { font-family: 'DM Mono', monospace; font-size: 0.8rem; color: #fff; }
+  .rule-box code.gold { color: var(--gold); }
+  .rule-box code.red { color: #e07070; }
+  .rule-box code.green { color: #90d0a8; }
+  .rule-pair { background: #1e1c14; padding: 10px 14px; margin: 8px 0; font-size: 0.83rem; line-height: 1.9; }
+  .rule-pair .d { color: #a09070; font-style: italic; }
+  .rule-pair .r { color: #e8dfc8; }
+  .rule-pair .r strong { color: var(--gold); }
+  .rule-pair .r u { text-decoration-color: #90d0a8; color: #90d0a8; text-decoration: underline; }
+
+  .evidence-tape {
+    background: #f5d800;
+    color: #1a1208;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    padding: 5px 14px;
+    margin: 16px 0;
+    text-align: center;
+    font-weight: 500;
+  }
+
+  .bs-table { width: 100%; border-collapse: collapse; font-size: 0.8rem; margin: 12px 0; }
+  .bs-table th { background: var(--ink); color: var(--gold); font-family: 'DM Mono', monospace; font-size: 0.62rem; letter-spacing: 0.12em; text-transform: uppercase; padding: 7px 12px; text-align: left; border: 1px solid #2a2010; }
+  .bs-table td { padding: 7px 12px; border: 1px solid var(--rule); vertical-align: middle; }
+  .bs-table tr:nth-child(even) td { background: var(--aged); }
+  .bs-table .from { color: var(--mid); font-family: 'DM Mono', monospace; font-size: 0.76rem; }
+  .bs-table .to { color: var(--green); font-family: 'DM Mono', monospace; font-size: 0.76rem; font-weight: 500; }
+  .bs-table em { color: var(--mid); font-size: 0.78rem; }
+  .bs-table strong { color: var(--green); }
+
+  .mistake { background: #fdf0ed; border-left: 3px solid var(--blood); padding: 8px 12px; margin: 8px 0; font-size: 0.82rem; line-height: 1.75; }
+  .mistake .label { font-family: 'DM Mono', monospace; font-size: 0.58rem; letter-spacing: 0.12em; color: var(--blood); text-transform: uppercase; margin-bottom: 3px; }
+  .mistake .wrong { color: #8b1a1a; }
+  .mistake .right { color: var(--green); font-weight: 500; }
+
+  .interrogation-block { border: 2px solid var(--ink); background: #fff; margin-bottom: 20px; overflow: hidden; }
+  .int-header { background: var(--ink); color: var(--paper); padding: 8px 16px; font-family: 'DM Mono', monospace; font-size: 0.62rem; letter-spacing: 0.15em; text-transform: uppercase; display: flex; justify-content: space-between; }
+  .int-header span { color: var(--gold); }
+  .int-body { padding: 14px 16px; }
+  .int-scene { font-family: 'Playfair Display', serif; font-style: italic; font-size: 0.88rem; color: var(--mid); margin-bottom: 10px; border-left: 2px solid var(--rule); padding-left: 10px; line-height: 1.55; }
+  .int-question { font-size: 0.9rem; font-weight: 500; color: var(--ink); margin-bottom: 10px; padding: 8px 12px; background: var(--aged); border-left: 3px solid var(--slate); }
+  .int-question .speaker { font-family: 'DM Mono', monospace; font-size: 0.58rem; letter-spacing: 0.12em; color: var(--slate); text-transform: uppercase; margin-bottom: 3px; }
+  .int-task { font-family: 'DM Mono', monospace; font-size: 0.65rem; letter-spacing: 0.1em; color: var(--blood); text-transform: uppercase; margin-bottom: 8px; }
+  .int-input-row { display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px; font-size: 0.85rem; margin-bottom: 14px; }
+
+  input.blank {
+    border: none;
+    border-bottom: 2px solid var(--ink);
+    background: transparent;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.82rem;
+    padding: 0 4px;
+    color: var(--slate);
+    outline: none;
+    transition: border-color 0.2s;
+    min-width: 80px;
+    max-width: 180px;
+  }
+  input.blank:focus { border-color: var(--blood); }
+  input.blank.correct { border-color: var(--green); color: var(--green); }
+  input.blank.wrong { border-color: var(--blood); color: var(--blood); }
+
+  .check-btn { background: var(--slate); color: #fff; border: none; padding: 7px 20px; font-family: 'DM Mono', monospace; font-size: 0.68rem; letter-spacing: 0.12em; cursor: pointer; text-transform: uppercase; margin-top: 4px; transition: background 0.2s; display: block; }
+  .check-btn:hover { background: #253545; }
+  .feedback-box { display: none; margin-top: 10px; padding: 8px 12px; font-size: 0.8rem; }
+  .feedback-box.show { display: block; }
+  .feedback-box.good { background: #e4f0e8; color: #1a3a22; border-left: 3px solid var(--green); }
+  .feedback-box.bad { background: #fde8e0; color: #5a1010; border-left: 3px solid var(--blood); }
+
+  .scenario-card { background: var(--ink); color: var(--paper); padding: 18px 20px; margin-bottom: 16px; border: 2px solid #3a3020; position: relative; }
+  .scenario-card::before { content: 'CASE ACTIVE'; position: absolute; top: 10px; right: 14px; font-family: 'DM Mono', monospace; font-size: 0.55rem; letter-spacing: 0.2em; color: var(--blood); border: 1px solid var(--blood); padding: 1px 6px; }
+  .scenario-card .s-num { font-family: 'DM Mono', monospace; font-size: 0.58rem; letter-spacing: 0.2em; color: var(--gold); text-transform: uppercase; margin-bottom: 6px; }
+  .scenario-card .s-scene { font-family: 'Playfair Display', serif; font-style: italic; font-size: 0.92rem; color: #b8a888; line-height: 1.55; margin-bottom: 10px; }
+  .scenario-card .s-said { font-size: 0.9rem; color: #fff; background: #2a2818; padding: 8px 12px; margin-bottom: 8px; border-left: 3px solid var(--gold); }
+  .scenario-card .s-said .who { font-family: 'DM Mono', monospace; font-size: 0.6rem; letter-spacing: 0.1em; color: var(--gold); margin-bottom: 3px; }
+  .scenario-card .s-task { font-family: 'DM Mono', monospace; font-size: 0.62rem; letter-spacing: 0.1em; color: #d0b080; text-transform: uppercase; margin-bottom: 10px; }
+  .s-buttons { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+  .s-btn { background: transparent; border: 1px solid var(--gold); color: var(--gold); padding: 5px 14px; font-family: 'DM Mono', monospace; font-size: 0.65rem; letter-spacing: 0.1em; cursor: pointer; text-transform: uppercase; transition: all 0.2s; }
+  .s-btn:hover { background: var(--gold); color: var(--ink); }
+  .s-btn.nav { border-color: #6a7a8c; color: #6a7a8c; }
+  .s-btn.nav:hover { background: #3a4a5c; color: #fff; border-color: #3a4a5c; }
+  .s-answer { background: var(--green); color: #fff; padding: 11px 14px; margin-top: 12px; font-size: 0.85rem; line-height: 1.65; display: none; }
+  .s-answer.show { display: block; }
+  .s-answer .model { font-family: 'DM Mono', monospace; font-size: 0.72rem; color: #a0e0b8; margin-top: 7px; border-top: 1px solid rgba(255,255,255,0.2); padding-top: 6px; }
+  .s-counter { font-family: 'DM Mono', monospace; font-size: 0.62rem; color: #6a7a8c; }
+
+  .sum-card { border: 2px solid var(--ink); padding: 16px; background: #fff; position: relative; }
+  .sum-card::before { content: ''; position: absolute; top: 0; left: 0; width: 5px; height: 100%; background: var(--slate); }
+  .sum-card h4 { font-family: 'Playfair Display', serif; font-size: 1rem; padding-left: 10px; margin-bottom: 8px; }
+  .sum-card .sm { font-family: 'DM Mono', monospace; font-size: 0.58rem; letter-spacing: 0.12em; color: var(--slate); text-transform: uppercase; padding-left: 10px; margin-bottom: 6px; }
+  .sum-card p, .sum-card li { font-size: 0.82rem; line-height: 1.65; padding-left: 10px; }
+  .sum-card ul { padding-left: 28px; margin-top: 6px; }
+  .sum-card li { padding-left: 0; margin-bottom: 4px; }
+  .mini-pair { background: var(--aged); border-left: 3px solid var(--green); padding: 8px 12px; margin-top: 10px; font-size: 0.82rem; }
+  .mini-pair .d { font-style: italic; color: var(--mid); margin-bottom: 3px; }
+  .mini-pair .r strong { color: var(--blood); }
+  .mini-pair .r u { color: var(--green); text-decoration-color: var(--green); text-decoration: underline; }
+
+  /* FIX #7: exit ticket — no hints, just the prompt */
+  .exit-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 10px; }
+  @media (max-width: 500px) { .exit-grid { grid-template-columns: 1fr; } }
+  .exit-item { background: #1e1c14; padding: 10px 14px; font-size: 0.85rem; line-height: 1.8; }
+  .exit-item .q { color: var(--gold); font-style: italic; }
+  .exit-item .verb { font-family: 'DM Mono', monospace; font-size: 0.66rem; color: #6a7060; margin-top: 4px; }
+
+  .ornament { text-align: center; color: var(--gold); font-size: 1rem; margin: 18px 0; letter-spacing: 0.35em; }
+
+  .error-row { display: flex; gap: 12px; align-items: flex-start; margin-bottom: 12px; font-size: 0.84rem; }
+  .err-num { font-family: 'DM Mono', monospace; font-size: 0.7rem; background: var(--blood); color: #fff; padding: 2px 7px; min-width: 26px; text-align: center; flex-shrink: 0; margin-top: 3px; }
+  .err-text u { text-decoration-style: wavy; text-decoration-color: var(--blood); color: var(--blood); }
+</style>
+</head>
+<body>
+
+<div class="masthead">
+  <div class="kicker">Reported Speech Series</div>
+  <h1>The Blackwood Interrogations</h1>
+  <div class="sub">Indirect Questions &amp; the Backshift of Tenses</div>
+  <div class="byline-row">
+    <span>★ LORD BLACKWOOD IS DEAD</span>
+    <span>★ THREE SUSPECTS</span>
+    <span>★ ONE DETECTIVE</span>
+    <span>★ 20 MINUTES TO CRACK THE CASE</span>
+  </div>
+</div>
+
+<!-- FIX: removed "Case File No. 8B" -->
+<div class="case-banner">
+  <span>Blackwood Manor &nbsp;·&nbsp; 11 November 1932</span>
+  <span class="stamp">Restricted</span>
+</div>
+
+<div class="page">
+
+  <div class="phase-nav">
+    <div class="phase-btn active" onclick="showPhase(0)">
+      <div class="pn">Phase 01</div><div class="pt">The Scene</div><div class="pm">3 min</div>
+    </div>
+    <div class="phase-btn" onclick="showPhase(1)">
+      <div class="pn">Phase 02</div><div class="pt">The Rules</div><div class="pm">5 min</div>
+    </div>
+    <div class="phase-btn" onclick="showPhase(2)">
+      <div class="pn">Phase 03</div><div class="pt">Interrogation</div><div class="pm">5 min</div>
+    </div>
+    <div class="phase-btn" onclick="showPhase(3)">
+      <div class="pn">Phase 04</div><div class="pt">The Briefing</div><div class="pm">5 min</div>
+    </div>
+    <div class="phase-btn" onclick="showPhase(4)">
+      <div class="pn">Phase 05</div><div class="pt">Verdict</div><div class="pm">2 min</div>
+    </div>
+  </div>
+
+  <!-- PHASE 1 -->
+  <div class="phase active" id="phase-0">
+    <div class="section-label">Phase 01 — The Scene of the Crime <span class="badge">3 MIN</span></div>
+    <!-- FIX #10/#11: 3fr 2fr gives suspect board more room -->
+    <div class="col-scene">
+      <div>
+        <div class="case-card">
+          <div class="card-label">The Situation</div>
+          <h3>Lord Blackwood Is Found Dead</h3>
+          <p>It is the morning of 11 November, 1932. Lord Reginald Blackwood has been found dead in the library of Blackwood Manor. The cause: poisoned tea.</p>
+          <p style="margin-top:8px">Detective Inspector Clara Voss arrives and immediately begins questioning the three people who were in the house that night. <strong>You are her assistant.</strong> Your job is to take notes and report her questions accurately to the Chief Inspector — who was not present during the interviews.</p>
+          <p style="margin-top:8px">The Chief Inspector will only accept testimony that follows correct grammar. One error in your report and the suspect walks free.</p>
+        </div>
+        <div class="evidence-tape">⚠ Your grammar is evidence. One mistake lets the killer escape. ⚠</div>
+        <div class="case-card">
+          <div class="card-label">The Grammar Problem</div>
+          <h3>You Cannot Quote Directly</h3>
+          <p>You heard Inspector Voss ask: <em>"Where were you at midnight?"</em></p>
+          <p style="margin-top:8px">But to the Chief Inspector, you must report it — not quote it. You must transform the question:</p>
+          <div style="background:var(--aged);padding:10px 14px;margin-top:10px;font-size:0.85rem;line-height:2;border-left:3px solid var(--slate)">
+            <div style="color:#8b1a1a">✗ She asked: "Where were you at midnight?"</div>
+            <div>✓ She asked <strong>where he had been</strong> at midnight.</div>
+          </div>
+          <p style="margin-top:10px;font-size:0.8rem;color:var(--mid)">The question word stays. The word order changes. The tense shifts back. That is the whole lesson.</p>
+        </div>
+        <!-- FIX #6/#11: recall card moved to main column, label is generic -->
+        <div class="case-card">
+          <div class="card-label">A Quick Recall</div>
+          <p>Tenses shift back in reported speech. You already know this:</p>
+          <table class="bs-table" style="margin-top:8px">
+            <tr><th>Direct</th><th>Reported</th></tr>
+            <tr><td><em>"I am nervous."</em></td><td>…he <strong>was</strong> nervous.</td></tr>
+            <tr><td><em>"She works here."</em></td><td>…she <strong>worked</strong> there.</td></tr>
+            <tr><td><em>"They have left."</em></td><td>…they <strong>had left</strong>.</td></tr>
+          </table>
+          <p style="margin-top:8px;font-family:'DM Mono',monospace;font-size:0.68rem;color:var(--mid)">Today: the same rules — but for questions.</p>
+        </div>
+      </div>
+      <div>
+        <div class="section-label">The Suspects <span class="badge">Board</span></div>
+        <!-- FIX #10: horizontal card layout -->
+        <div class="suspect-board">
+          <div class="suspect-card">
+            <div class="mugshot">🎩</div>
+            <div class="s-info">
+              <div class="s-name">Victor Ashby</div>
+              <div class="s-role">The Butler</div>
+              <div class="s-alibi">"I was polishing the silver in the pantry all evening."</div>
+              <div class="s-status suspect">Under Suspicion</div>
+            </div>
+          </div>
+          <div class="suspect-card">
+            <div class="mugshot">💄</div>
+            <div class="s-info">
+              <div class="s-name">Lady Miriam Foss</div>
+              <div class="s-role">The Niece</div>
+              <div class="s-alibi">"I had retired to my room by ten o'clock. I heard nothing."</div>
+              <div class="s-status suspect">Under Suspicion</div>
+            </div>
+          </div>
+          <div class="suspect-card">
+            <div class="mugshot">🔬</div>
+            <div class="s-info">
+              <div class="s-name">Dr. Edmund Hale</div>
+              <div class="s-role">The Physician</div>
+              <div class="s-alibi">"I arrived at eleven for a house call. I left before midnight."</div>
+              <div class="s-status suspect">Under Suspicion</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PHASE 2 -->
+  <div class="phase" id="phase-1">
+    <div class="section-label">Phase 02 — Detective Voss's Rules of Reporting <span class="badge">5 MIN</span></div>
+    <div class="rule-box">
+      <h2>Two Kinds of Questions, Two Reporting Methods</h2>
+      <!-- FIX #5: rule-inner has its own responsive class -->
+      <div class="rule-inner">
+        <div>
+          <div style="font-family:'DM Mono',monospace;font-size:0.62rem;letter-spacing:0.15em;color:var(--gold);margin-bottom:8px">TYPE A — YES / NO QUESTIONS</div>
+          <p>When a question can be answered yes or no, introduce it with <code class="gold">if</code> or <code class="gold">whether</code>. Use statement word order — no inversion.</p>
+          <div class="rule-pair">
+            <div class="d">Inspector: "Did you hear a noise?"</div>
+            <div class="r">She asked <strong>whether</strong> he <u>had heard</u> a noise.</div>
+          </div>
+          <div class="rule-pair">
+            <div class="d">Inspector: "Are you telling the truth?"</div>
+            <div class="r">She asked <strong>if</strong> he <u>was</u> telling the truth.</div>
+          </div>
+        </div>
+        <div>
+          <div style="font-family:'DM Mono',monospace;font-size:0.62rem;letter-spacing:0.15em;color:var(--gold);margin-bottom:8px">TYPE B — WH- QUESTIONS</div>
+          <p>Keep the <code class="gold">question word</code> (who, what, where, when, why, how). Use statement word order. Apply backshift.</p>
+          <div class="rule-pair">
+            <div class="d">Inspector: "Where were you at midnight?"</div>
+            <div class="r">She asked <strong>where</strong> he <u>had been</u> at midnight.</div>
+          </div>
+          <div class="rule-pair">
+            <div class="d">Inspector: "Why did you leave early?"</div>
+            <div class="r">She asked <strong>why</strong> he <u>had left</u> early.</div>
+          </div>
+        </div>
+      </div>
+      <div style="margin-top:16px;padding-top:12px;border-top:1px solid #3a3020;font-size:0.83rem;color:#c8b898;line-height:1.7">
+        ⚠ <code class="gold">CRITICAL:</code> Indirect questions use <strong style="color:#fff">statement word order</strong> — no inversion, no do/does/did. &nbsp;<code class="red">✗ She asked where did he go.</code> &nbsp;→&nbsp; <code class="green">✓ She asked where he had gone.</code>
+      </div>
+    </div>
+
+    <div class="col2">
+      <div>
+        <div class="section-label">Backshift — The Tense Shift Table</div>
+        <table class="bs-table">
+          <tr><th>Direct (tense used)</th><th>→ Reported form</th></tr>
+          <tr>
+            <td><span class="from">Present Simple</span><br><em>"Do you know him?"</em></td>
+            <td><span class="to">Past Simple</span><br>…if he <strong>knew</strong> him.</td>
+          </tr>
+          <tr>
+            <td><span class="from">Past Simple</span><br><em>"Did you see her?"</em></td>
+            <td><span class="to">Past Perfect</span><br>…if he <strong>had seen</strong> her.</td>
+          </tr>
+          <tr>
+            <td><span class="from">Present Perfect</span><br><em>"Have you been here?"</em></td>
+            <td><span class="to">Past Perfect</span><br>…whether he <strong>had been</strong> there.</td>
+          </tr>
+          <tr>
+            <td><span class="from">Present Continuous</span><br><em>"What are you doing?"</em></td>
+            <td><span class="to">Past Continuous</span><br>…what he <strong>was doing</strong>.</td>
+          </tr>
+          <tr>
+            <td><span class="from">will</span><br><em>"Will you confess?"</em></td>
+            <td><span class="to">would</span><br>…whether he <strong>would confess</strong>.</td>
+          </tr>
+          <tr>
+            <td><span class="from">can</span><br><em>"Can you explain this?"</em></td>
+            <td><span class="to">could</span><br>…if he <strong>could explain</strong> it.</td>
+          </tr>
+        </table>
+      </div>
+      <div>
+        <div class="section-label">Four Errors That Contaminate Evidence</div>
+        <div class="mistake">
+          <div class="label">✗ Error 1 — Inversion</div>
+          <div class="wrong">She asked where <u>did he hide</u> the poison.</div>
+          <div class="right">✓ She asked where <strong>he had hidden</strong> the poison.</div>
+        </div>
+        <div class="mistake">
+          <div class="label">✗ Error 2 — Question Mark</div>
+          <div class="wrong">He asked if she was lying<u>?</u></div>
+          <div class="right">✓ He asked if she was lying<strong>.</strong></div>
+        </div>
+        <div class="mistake">
+          <div class="label">✗ Error 3 — Missing if/whether</div>
+          <div class="wrong">She asked <u>had he met</u> the victim before.</div>
+          <div class="right">✓ She asked <strong>whether</strong> he had met the victim before.</div>
+        </div>
+        <div class="mistake">
+          <div class="label">✗ Error 4 — No Backshift</div>
+          <div class="wrong">She asked where he <u>was</u> at midnight. <span style="font-size:0.75rem;color:var(--mid)">(from "Where were you?")</span></div>
+          <div class="right">✓ She asked where he <strong>had been</strong> at midnight.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PHASE 3 -->
+  <div class="phase" id="phase-2">
+    <div class="section-label">Phase 03 — The Interrogation Room <span class="badge">5 MIN</span></div>
+    <div class="case-card" style="border-left:4px solid var(--blood)">
+      <div class="card-label">Your Mission</div>
+      <p>Inspector Voss has finished questioning the suspects. You were in the room, taking notes in shorthand. Now you must report her questions accurately to the Chief Inspector. Transform each direct question into an indirect question. Every grammatical error weakens the case.</p>
+    </div>
+
+    <!-- Interrogation A: Ashby -->
+    <div class="interrogation-block">
+      <div class="int-header">Interrogation A — Victor Ashby (the Butler) <span>Suspect #1</span></div>
+      <div class="int-body">
+        <div class="int-scene">Inspector Voss sits across from Ashby. The silver candlestick between them catches the light. She leans forward slowly.</div>
+
+        <div class="int-question"><div class="speaker">Inspector Voss — direct question:</div>"Did you prepare Lord Blackwood's evening tea?"</div>
+        <div class="int-task">▶ Report it (yes/no question):</div>
+        <!-- FIX #3: placeholder no longer gives away the answer -->
+        <div class="int-input-row">She asked <input class="blank" id="a1" placeholder="connector…"> Ashby had prepared Lord Blackwood's evening tea.</div>
+
+        <div class="int-question"><div class="speaker">Inspector Voss — direct question:</div>"What time did you bring the tea to the library?"</div>
+        <div class="int-task">▶ Report it (wh- question):</div>
+        <!-- FIX #4: placeholder no longer gives away the question word -->
+        <div class="int-input-row">She asked <input class="blank" id="a2" placeholder="q-word…"> Ashby <input class="blank" id="a2b" placeholder="verb…"> the tea to the library.</div>
+
+        <div class="int-question"><div class="speaker">Inspector Voss — direct question:</div>"Have you ever handled arsenic in this house?"</div>
+        <div class="int-task">▶ Report it (yes/no question):</div>
+        <!-- FIX #1: a3b now requires full verb phrase -->
+        <div class="int-input-row">She asked <input class="blank" id="a3" placeholder="connector…"> he <input class="blank" id="a3b" placeholder="verb phrase…"> ever handled arsenic in that house.</div>
+
+        <button class="check-btn" onclick="checkA()">Submit Report — Interrogation A</button>
+        <div class="feedback-box" id="fbA"></div>
+      </div>
+    </div>
+
+    <!-- Interrogation B: Lady Foss -->
+    <div class="interrogation-block">
+      <div class="int-header">Interrogation B — Lady Miriam Foss (the Niece) <span>Suspect #2</span></div>
+      <div class="int-body">
+        <div class="int-scene">Lady Foss sits with perfect posture, hands folded. She does not look at the inspector. The fire crackles. Inspector Voss does not waste time.</div>
+
+        <div class="int-question"><div class="speaker">Inspector Voss — direct question:</div>"Why were you in the corridor at half past eleven?"</div>
+        <div class="int-task">▶ Report it (wh- question):</div>
+        <div class="int-input-row">She asked <input class="blank" id="b1" placeholder="q-word…"> Lady Foss <input class="blank" id="b1b" placeholder="verb…"> in the corridor at half past eleven.</div>
+
+        <div class="int-question"><div class="speaker">Inspector Voss — direct question:</div>"Will you tell me what you heard?"</div>
+        <div class="int-task">▶ Report it (yes/no question):</div>
+        <div class="int-input-row">She asked <input class="blank" id="b2" placeholder="connector…"> Lady Foss <input class="blank" id="b2b" placeholder="verb…"> her what she had heard.</div>
+
+        <button class="check-btn" onclick="checkB()">Submit Report — Interrogation B</button>
+        <div class="feedback-box" id="fbB"></div>
+      </div>
+    </div>
+
+    <!-- FIX #12: Interrogation C added for Dr. Hale -->
+    <div class="interrogation-block">
+      <div class="int-header">Interrogation C — Dr. Edmund Hale (the Physician) <span>Suspect #3</span></div>
+      <div class="int-body">
+        <div class="int-scene">Dr. Hale is the last to be questioned. He sits very still. A glass vial has been found in his medical bag. Inspector Voss places it on the table between them without speaking.</div>
+
+        <div class="int-question"><div class="speaker">Inspector Voss — direct question:</div>"How long have you known Lord Blackwood?"</div>
+        <div class="int-task">▶ Report it (wh- question):</div>
+        <div class="int-input-row">She asked <input class="blank" id="c1" placeholder="q-word…"> Dr. Hale <input class="blank" id="c1b" placeholder="verb…"> Lord Blackwood.</div>
+
+        <div class="int-question"><div class="speaker">Inspector Voss — direct question:</div>"Can you explain why this arsenic is in your bag?"</div>
+        <div class="int-task">▶ Report it (yes/no question):</div>
+        <div class="int-input-row">She asked <input class="blank" id="c2" placeholder="connector…"> he <input class="blank" id="c2b" placeholder="verb…"> why that arsenic was in his bag.</div>
+
+        <button class="check-btn" onclick="checkC()">Submit Report — Interrogation C</button>
+        <div class="feedback-box" id="fbC"></div>
+      </div>
+    </div>
+
+    <div class="section-label">Contaminated Evidence — Find the Errors <span class="badge">Bonus</span></div>
+    <div class="case-card">
+      <p style="margin-bottom:12px">Your colleague's report contains errors. Each sentence has exactly one mistake. Identify and correct it.</p>
+      <div class="error-row"><span class="err-num">1</span><div class="err-text">She asked where <u>did the butler go</u> after dinner.</div></div>
+      <div class="error-row"><span class="err-num">2</span><div class="err-text">He wanted to know if Lady Foss had left her room<u>?</u></div></div>
+      <div class="error-row"><span class="err-num">3</span><div class="err-text">The inspector asked <u>had the doctor visited</u> before.</div></div>
+      <div class="error-row"><span class="err-num">4</span><div class="err-text">She asked what time the doctor <u>leaves</u> the manor.</div></div>
+      <div class="error-row"><span class="err-num">5</span><div class="err-text">He asked <u>whether did</u> Ashby know about the will.</div></div>
+    </div>
+  </div>
+
+  <!-- PHASE 4 -->
+  <div class="phase" id="phase-3">
+    <div class="section-label">Phase 04 — Briefing the Chief Inspector <span class="badge">5 MIN</span></div>
+    <div class="case-card">
+      <div class="card-label">Your Mission</div>
+      <p>The Chief Inspector has arrived. He was not present during any of the interviews. You must brief him on what Inspector Voss asked each suspect. Work through each scenario: hear the direct question, form the indirect version, then reveal the model answer to check.</p>
+    </div>
+    <div id="scenarioArea"></div>
+    <!-- FIX #8: production task example removed — no pre-emptive model sentences -->
+    <div style="background:var(--aged);border:1px solid var(--rule);padding:14px 16px;margin-top:16px;font-size:0.83rem">
+      <strong style="font-family:'DM Mono',monospace;font-size:0.62rem;letter-spacing:0.1em;color:var(--blood)">▶ PRODUCTION TASK:</strong><br>
+      <span style="line-height:1.7">Working solo or in pairs: invent 3–4 more questions Inspector Voss might have asked one of the suspects. Then report them aloud to your partner as the Chief Inspector. Mix yes/no and wh- questions.</span>
+    </div>
+  </div>
+
+  <!-- PHASE 5 -->
+  <div class="phase" id="phase-4">
+    <div class="section-label">Phase 05 — The Verdict &amp; Summary <span class="badge">2 MIN</span></div>
+    <div class="col3">
+      <div class="sum-card">
+        <div class="sm">Rule 1</div>
+        <h4>Yes/No → if / whether</h4>
+        <p>Use <strong>if</strong> or <strong>whether</strong> as the connector. Statement word order follows immediately. No inversion.</p>
+        <div class="mini-pair">
+          <div class="d">"Are you the killer?"</div>
+          <div class="r">→ She asked <strong>if</strong> he <u>was</u> the killer.</div>
+        </div>
+      </div>
+      <div class="sum-card">
+        <div class="sm">Rule 2</div>
+        <h4>Wh- → keep the question word</h4>
+        <p>Keep <strong>who / what / where / when / why / how</strong>. Statement word order. Backshift applies.</p>
+        <div class="mini-pair">
+          <div class="d">"Why did you lie?"</div>
+          <div class="r">→ He asked <strong>why</strong> she <u>had lied</u>.</div>
+        </div>
+      </div>
+      <div class="sum-card">
+        <div class="sm">What Poisons a Report</div>
+        <h4>The 4 Fatal Errors</h4>
+        <ul>
+          <li>Inversion after the question word</li>
+          <li>Question mark at the end</li>
+          <li>Missing if/whether (yes/no questions)</li>
+          <li>Forgotten backshift</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="rule-box" style="margin-top:4px">
+      <h2>Exit Ticket — The Final Deposition</h2>
+      <!-- FIX #7: hints removed — students produce full indirect questions themselves -->
+      <p>Report each of these questions to the Chief Inspector. Say them aloud as full indirect questions.</p>
+      <div class="exit-grid">
+        <div class="exit-item">
+          <div class="q">"Did you poison the tea, Mr Ashby?"</div>
+          <div class="verb">Reporting verb: asked</div>
+        </div>
+        <div class="exit-item">
+          <div class="q">"How long have you known the victim?"</div>
+          <div class="verb">Reporting verb: wanted to know</div>
+        </div>
+        <div class="exit-item">
+          <div class="q">"Will you sign this statement?"</div>
+          <div class="verb">Reporting verb: asked</div>
+        </div>
+        <div class="exit-item">
+          <div class="q">"What were you doing at midnight?"</div>
+          <div class="verb">Reporting verb: asked</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="ornament" style="margin-top:28px">— CASE CLOSED · LESSON COMPLETE —</div>
+    <p style="text-align:center;font-family:'DM Mono',monospace;font-size:0.62rem;letter-spacing:0.18em;color:var(--mid);margin-top:8px">NEXT: REPORTING VERBS — SAID, TOLD, ASKED, WARNED, DENIED…</p>
+  </div>
+
+</div>
+
+<script>
+function showPhase(n) {
+  document.querySelectorAll('.phase').forEach((p,i) => p.classList.toggle('active', i===n));
+  document.querySelectorAll('.phase-btn').forEach((b,i) => b.classList.toggle('active', i===n));
+}
+
+// FIX #1: a3b now requires full verb 'had' (part of 'had ever handled')
+// FIX #2: b1b removes 'was' — only 'had been' is correct
+const answersA = {
+  a1:  ['if','whether'],
+  a2:  ['what time'],
+  a2b: ['had brought'],
+  a3:  ['if','whether'],
+  a3b: ['had'],  // checks the aux; full phrase is 'had [ever] handled'
+};
+const answersB = {
+  b1:  ['why'],
+  b1b: ['had been'],  // FIX #2: 'was' removed — past simple 'were' must backshift to past perfect
+  b2:  ['if','whether'],
+  b2b: ['would tell'],
+};
+const answersC = {
+  c1:  ['how long'],
+  c1b: ['had known'],
+  c2:  ['if','whether'],
+  c2b: ['could explain'],
+};
+
+function runCheck(answersObj, fbId) {
+  let correct=0, total=0, report='';
+  for (const [id, acceptable] of Object.entries(answersObj)) {
+    const el = document.getElementById(id);
+    if (!el) continue;
+    total++;
+    const val = el.value.trim().toLowerCase();
+    const ok = acceptable.some(a => val === a.toLowerCase());
+    el.className = 'blank ' + (ok ? 'correct' : 'wrong');
+    if (ok) correct++;
+    else report += '<strong>' + id + '</strong>: accept <em>' + acceptable.join(' or ') + '</em><br>';
+  }
+  const fb = document.getElementById(fbId);
+  if (correct === total) {
+    fb.className = 'feedback-box show good';
+    fb.innerHTML = '&#10003; All ' + total + ' correct. Your report will hold up in court.';
+  } else {
+    fb.className = 'feedback-box show bad';
+    fb.innerHTML = correct + '/' + total + ' correct. Review:<br>' + report;
+  }
+}
+
+function checkA() { runCheck(answersA, 'fbA'); }
+function checkB() { runCheck(answersB, 'fbB'); }
+function checkC() { runCheck(answersC, 'fbC'); }
+
+const scenarios = [
+  {
+    num: 'Scenario 01 of 05',
+    scene: "Inspector Voss pulls out a glass vial found in Dr. Hale's medical bag. She holds it up to the lamplight and looks him directly in the eye.",
+    who: "Inspector Voss asks Dr. Hale:",
+    direct: '"Is this arsenic yours?"',
+    task: 'Report the question to the Chief Inspector (yes/no).',
+    answer: 'She asked <strong>whether / if</strong> the arsenic <strong>was</strong> his.',
+    note: 'Present Simple is → Past Simple was. Yes/no question → if/whether. No inversion.'
+  },
+  {
+    num: 'Scenario 02 of 05',
+    scene: "Victor Ashby is sweating. A button has come loose from his jacket. Inspector Voss stands and walks slowly around the table without speaking.",
+    who: "Inspector Voss asks Victor Ashby:",
+    direct: '"Who gave you instructions to prepare the tea?"',
+    task: 'Report the wh- question to the Chief Inspector.',
+    answer: 'She asked <strong>who</strong> <strong>had given</strong> him instructions to prepare the tea.',
+    note: 'Past Simple gave → Past Perfect had given. Keep "who". Statement word order — no did.'
+  },
+  {
+    num: 'Scenario 03 of 05',
+    scene: "Lady Foss has just contradicted herself. Her account of the evening no longer matches the housemaid's testimony. Inspector Voss flips open her notebook.",
+    who: "Inspector Voss asks Lady Miriam Foss:",
+    direct: '"How long have you been staying at the manor?"',
+    task: 'Report the wh- question.',
+    answer: 'She asked <strong>how long</strong> Lady Foss <strong>had been staying</strong> at the manor.',
+    note: 'Present Perfect Continuous → Past Perfect Continuous. Keep "how long".'
+  },
+  {
+    num: 'Scenario 04 of 05',
+    scene: "A letter has been found — written by Lord Blackwood the day before his death. Inspector Voss reads a passage aloud, then turns to Ashby.",
+    who: "Inspector Voss asks Victor Ashby:",
+    direct: '"Can you explain why Lord Blackwood feared you?"',
+    task: 'Report the yes/no question.',
+    answer: 'She asked <strong>whether / if</strong> he <strong>could explain</strong> why Lord Blackwood had feared him.',
+    note: 'can → could. Yes/no → whether/if. Note that "feared" also backshifts inside the embedded clause.'
+  },
+  {
+    num: 'Scenario 05 of 05',
+    scene: "The final question of the night. The fire is almost out. Inspector Voss looks at all three suspects in turn, long enough to make each one uncomfortable.",
+    who: "Inspector Voss addresses all three suspects:",
+    direct: '"Will any of you tell me what really happened that night?"',
+    task: 'Report this final question.',
+    answer: 'She asked <strong>whether</strong> any of them <strong>would tell</strong> her what had really happened that night.',
+    note: 'will → would. Yes/no → whether. "Happened" also backshifts: happened → had happened.'
+  },
+];
+
+let cur = 0;
+
+function renderScenario() {
+  const s = scenarios[cur];
+  document.getElementById('scenarioArea').innerHTML =
+    '<div class="scenario-card">' +
+    '<div class="s-num">' + s.num + '</div>' +
+    '<div class="s-scene">' + s.scene + '</div>' +
+    '<div class="s-said"><div class="who">' + s.who + '</div>' + s.direct + '</div>' +
+    '<div class="s-task">&#9654; Task: ' + s.task + '</div>' +
+    '<div class="s-buttons">' +
+    '<button class="s-btn" onclick="revealAnswer()">Reveal Model Answer</button>' +
+    (cur < scenarios.length - 1
+      ? '<button class="s-btn nav" onclick="nextScenario()">Next Witness &rarr;</button>'
+      : '<button class="s-btn nav" onclick="resetScenarios()">Begin Again &#8634;</button>') +
+    '<span class="s-counter">' + (cur+1) + ' / ' + scenarios.length + '</span>' +
+    '</div>' +
+    '<div class="s-answer" id="sAns">' + s.answer + '<div class="model">&#128161; ' + s.note + '</div></div>' +
+    '</div>';
+}
+
+function revealAnswer() {
+  var el = document.getElementById('sAns');
+  if (el) el.classList.add('show');
+}
+function nextScenario() { if (cur < scenarios.length-1) { cur++; renderScenario(); } }
+function resetScenarios() { cur = 0; renderScenario(); }
+
+renderScenario();
+</script>
+</body>
+</html>
